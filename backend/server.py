@@ -298,7 +298,13 @@ async def place_order(trade_request: TradeRequest, current_user: User = Depends(
 
 @api_router.get("/trading/history")
 async def get_trading_history(current_user: User = Depends(get_current_user)):
-    trades = await db.trades.find({"user_id": current_user.id}).sort("created_at", -1).to_list(50)
+    trades_cursor = db.trades.find({"user_id": current_user.id}).sort("created_at", -1).limit(50)
+    trades = []
+    async for trade_doc in trades_cursor:
+        # Remove MongoDB ObjectId and convert to dict
+        if "_id" in trade_doc:
+            del trade_doc["_id"]
+        trades.append(trade_doc)
     return {"trades": trades}
 
 # Public endpoints
