@@ -252,7 +252,12 @@ async def create_stake(stake_request: StakeRequest, current_user: User = Depends
 
 @api_router.get("/staking/stakes")
 async def get_user_stakes(current_user: User = Depends(get_current_user)):
-    stakes = await db.stakes.find({"user_id": current_user.id}).to_list(100)
+    stakes_cursor = db.stakes.find({"user_id": current_user.id})
+    stakes = []
+    async for stake_doc in stakes_cursor:
+        if "_id" in stake_doc:
+            del stake_doc["_id"]
+        stakes.append(stake_doc)
     return {"stakes": stakes}
 
 # Trading endpoints
