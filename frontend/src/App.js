@@ -1,50 +1,73 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import HomePage from "@/components/HomePage";
+import AuthPage from "@/components/AuthPage";
+import Dashboard from "@/components/Dashboard";
 import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
-    }
-  };
+function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    helloWorldApi();
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      fetchUserProfile();
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+  const fetchUserProfile = async () => {
+    try {
+      const response = await axios.get(`${API}/user/profile`);
+      setUser(response.data);
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+    }
+    setLoading(false);
+  };
 
-function App() {
+  const login = (token, userData) => {
+    localStorage.setItem('token', token);
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    setUser(userData);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
+    setUser(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#2EE6D6]"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
+          <Route path="/" element={<HomePage user={user} onLogout={logout} />} />
+          <Route 
+            path="/auth" 
+            element={user ? <Navigate to="/dashboard" /> : <AuthPage onLogin={login} />} 
+          />
+          <Route 
+            path="/dashboard" 
+            element={user ? <Dashboard user={user} onLogout={logout} /> : <Navigate to="/auth" />} 
+          />
         </Routes>
       </BrowserRouter>
     </div>
