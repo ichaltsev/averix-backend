@@ -92,6 +92,10 @@ class TokenResponse(BaseModel):
 
 # Utility functions
 def hash_password(password: str) -> str:
+    # Bcrypt has a 72 byte limit, truncate if necessary
+    password_bytes = password.encode('utf-8')
+    if len(password_bytes) > 72:
+        password = password_bytes[:72].decode('utf-8')
     return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
