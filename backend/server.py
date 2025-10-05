@@ -189,14 +189,24 @@ async def get_profile(current_user: User = Depends(get_current_user)):
 @api_router.get("/user/dashboard")
 async def get_dashboard(current_user: User = Depends(get_current_user)):
     # Get user's stakes
-    stakes = await db.stakes.find({"user_id": current_user.id, "is_active": True}).to_list(100)
+    stakes_cursor = db.stakes.find({"user_id": current_user.id, "is_active": True})
+    stakes = []
+    async for stake_doc in stakes_cursor:
+        if "_id" in stake_doc:
+            del stake_doc["_id"]
+        stakes.append(stake_doc)
     
     # Get recent trades
-    trades = await db.trades.find({"user_id": current_user.id}).sort("created_at", -1).limit(10).to_list(10)
+    trades_cursor = db.trades.find({"user_id": current_user.id}).sort("created_at", -1).limit(10)
+    trades = []
+    async for trade_doc in trades_cursor:
+        if "_id" in trade_doc:
+            del trade_doc["_id"]
+        trades.append(trade_doc)
     
     # Calculate total staked and rewards
     total_staked = sum(stake["amount"] for stake in stakes)
-    total_rewards = sum(stake["rewards_earned"] for stake in stakes)
+    total_rewards = sum(stake.get("rewards_earned", 0) for stake in stakes)
     
     return {
         "user": current_user.dict(),
