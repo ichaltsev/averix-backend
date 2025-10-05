@@ -258,7 +258,7 @@ async def get_trading_instruments():
     }
 
 @api_router.post("/trading/place-order")
-async def place_order(trade: Trade, current_user: User = Depends(get_current_user)):
+async def place_order(trade_request: TradeRequest, current_user: User = Depends(get_current_user)):
     # Risk validation (basic)
     if trade.amount > (current_user.tft_balance * 0.05):  # Max 5% of balance
         raise HTTPException(status_code=400, detail="Order exceeds 5% of balance limit")
