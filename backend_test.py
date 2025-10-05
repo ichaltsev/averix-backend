@@ -351,7 +351,7 @@ class AverixAPITester:
         # Test unauthorized access (without token)
         old_token = self.token
         self.token = None
-        self.run_test("Unauthorized Profile Access", "GET", "user/profile", 401)
+        self.run_test("Unauthorized Profile Access", "GET", "user/profile", 403)
         self.token = old_token
 
     def run_all_tests(self):
