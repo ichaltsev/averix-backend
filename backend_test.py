@@ -120,7 +120,7 @@ class AverixAPITester:
         # Generate unique test user
         timestamp = int(time.time())
         test_user = {
-            "email": f"test_user_{timestamp}@averix.test",
+            "email": f"test_user_{timestamp}@example.com",
             "password": "TestPass123!",
             "first_name": "Test",
             "last_name": "User"
