@@ -70,6 +70,14 @@ class Stake(BaseModel):
     is_active: bool = True
     rewards_earned: float = 0.0
 
+class TradeRequest(BaseModel):
+    symbol: str
+    side: str  # "buy" or "sell"
+    amount: float
+    price: float
+    stop_loss: Optional[float] = None
+    take_profit: Optional[float] = None
+
 class Trade(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
