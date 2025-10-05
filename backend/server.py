@@ -89,16 +89,14 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     user: dict
 
-# Utility functions
+# Utility functions  
 def hash_password(password: str) -> str:
-    # Bcrypt has a 72 byte limit, truncate if necessary
-    password_bytes = password.encode('utf-8')
-    if len(password_bytes) > 72:
-        password = password_bytes[:72].decode('utf-8')
-    return pwd_context.hash(password)
+    # Simple SHA-256 hashing with salt for demo
+    salt = "averix_salt_2025"
+    return hashlib.sha256((password + salt).encode()).hexdigest()
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    return hash_password(plain_password) == hashed_password
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
