@@ -260,18 +260,25 @@ async def get_trading_instruments():
 @api_router.post("/trading/place-order")
 async def place_order(trade_request: TradeRequest, current_user: User = Depends(get_current_user)):
     # Risk validation (basic)
-    if trade.amount > (current_user.tft_balance * 0.05):  # Max 5% of balance
+    if trade_request.amount > (current_user.tft_balance * 0.05):  # Max 5% of balance
         raise HTTPException(status_code=400, detail="Order exceeds 5% of balance limit")
     
-    if not trade.stop_loss or not trade.take_profit:
+    if not trade_request.stop_loss or not trade_request.take_profit:
         raise HTTPException(status_code=400, detail="Stop loss and take profit are mandatory")
     
-    trade.user_id = current_user.id
-    
-    # Simulate order execution (mock)
-    trade.status = "closed"
-    trade.closed_at = datetime.now(timezone.utc)
-    trade.pnl = trade.amount * 0.02  # Mock 2% profit
+    # Create trade object
+    trade = Trade(
+        user_id=current_user.id,
+        symbol=trade_request.symbol,
+        side=trade_request.side,
+        amount=trade_request.amount,
+        price=trade_request.price,
+        stop_loss=trade_request.stop_loss,
+        take_profit=trade_request.take_profit,
+        status="closed",
+        closed_at=datetime.now(timezone.utc),
+        pnl=trade_request.amount * 0.02  # Mock 2% profit
+    )
     
     await db.trades.insert_one(trade.dict())
     
